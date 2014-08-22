@@ -1,6 +1,6 @@
 # mpm - meta package manager
 
-Finally, a package manager for package managers.
+Finally, a package manager for JavaScript package managers.
 
 ![](https://xen-orchestra.com/wp-content/uploads/2014/03/1386271588578.jpg)
 
