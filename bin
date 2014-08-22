@@ -1,0 +1,123 @@
+# helpers
+function usage(){
+    echo
+    echo "mpm - meta package manager"
+    echo
+    echo "  Usage:"
+    echo 
+    echo "    install   - installs package manager specified"
+    echo "    uninstall - uninstalls package manager specified"
+    echo "    help      - you're reading it"
+    echo
+}
+
+function command_exists(){
+ ( type $1 >/dev/null 2>&1 )
+}
+
+# npm first and then alphabetical order
+PACKAGE_MANAGERS=( "npm:
+                        echo prefix = ~/local >> ~/.npmrc
+                        curl https://www.npmjs.org/install.sh | sh
+                   "
+                   "bower:
+                        npm %s -g bower
+                   "
+                   "component: 
+                        npm %s -g component
+                   "
+                   "duo:
+                        npm %s -g duo
+                   "
+                   "ender:
+                        npm %s -g ender
+                   "
+                   "jam:
+                        npm %s -g jamjs
+                   "
+                   "jspm:
+                        npm %s -g jspm
+                   "
+                   "volo:
+                        npm %s -g volo
+                   "
+                 )
+
+function install_or_remove_package_manager(){
+  for manager in "${PACKAGE_MANAGERS[@]}"; do
+      KEY=${manager%%:*}
+      VALUE=${manager#*:}
+      if [[ $KEY == $1 ]]; then
+        command=$(printf "$VALUE" $2)
+        echo "installing $1..."
+        echo "$command" | sed 's/^ *//'
+        eval "$command"
+        exit 0
+      fi
+  done
+
+  echo "package manager not found: $1 - write one yourself"
+  exit 1
+}
+
+# validations
+function check_npm(){
+  if ! command_exists 'npm' && [ ! "$1" == "npm" ]
+    then echo 'please install npm first - pakmen install npm'
+    exit 1
+  fi
+}
+
+function check_args(){
+  if [ -z "$2" ]; then
+    echo "$1 what?"
+    exit 1
+  fi
+}
+
+function check_presence(){
+  if $(command_exists $1); then
+    echo "$1 already installed"
+    exit 1
+  fi
+}
+
+function validate(){
+  check_args $1 "install"
+  check_npm $1
+  check_presence $1
+}
+
+# core
+function install(){
+  validate $1
+  install_or_remove_package_manager $1 "install"
+}
+
+function uninstall(){
+  if [ $1 == "npm" ]; then
+    npm uninstall -g npm
+    exit 0
+  fi
+
+  check_args $1 "uninstall"
+  install_or_remove_package_manager $1 "uninstall"
+}
+
+# CLI
+if [ "$1" == "bash" ]; then
+  usage;
+fi
+
+case $1 in
+  "install")
+    install $2
+  ;;
+  "uninstall")
+    uninstall $2
+  ;;
+
+  *)
+    usage
+  ;;
+esac
